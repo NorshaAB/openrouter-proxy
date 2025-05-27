@@ -20,4 +20,6 @@ app.post('/ai', async (req, res) => {
   res.json(data);
 });
 
-app.listen(10000, () => console.log("Proxy running on port 10000"));
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
