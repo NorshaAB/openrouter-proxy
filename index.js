@@ -8,7 +8,7 @@ app.use(express.json());
 
 app.post('/ai', async (req, res) => {
   try {
-    const response = await fetch("https://openrouter-proxy-norshaab.onrender.com", {
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": "Bearer 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", // 🔑 replace with your key
