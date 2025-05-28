@@ -1,21 +1,22 @@
 import express from 'express';
-import cors from 'cors';
 import fetch from 'node-fetch';
 
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// ✅ Use CORS middleware globally
-app.use(cors({
-  origin: 'https://norshaab.github.io',
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type']
-}));
+// ✅ Add manual CORS headers middleware
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', 'https://norshaab.github.io');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
 
-// ✅ Ensure preflight requests are handled
-app.options('*', cors());
+// ✅ Respond to preflight OPTIONS requests
+app.options('/ai', (req, res) => {
+  res.sendStatus(200);
+});
 
-// Parse JSON request body
 app.use(express.json());
 
 app.post('/ai', async (req, res) => {
