@@ -4,19 +4,18 @@ import fetch from 'node-fetch';
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// ✅ Add manual CORS headers middleware
+// ✅ Set CORS headers before any body parsing or routing
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', 'https://norshaab.github.io');
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
   next();
 });
 
-// ✅ Respond to preflight OPTIONS requests
-app.options('/ai', (req, res) => {
-  res.sendStatus(200);
-});
-
+// ✅ Now safely parse JSON
 app.use(express.json());
 
 app.post('/ai', async (req, res) => {
