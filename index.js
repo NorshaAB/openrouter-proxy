@@ -5,17 +5,18 @@ import fetch from 'node-fetch';
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// ✅ Allow CORS from GitHub Pages
+// ✅ Use CORS middleware globally
 app.use(cors({
   origin: 'https://norshaab.github.io',
   methods: ['GET', 'POST', 'OPTIONS'],
   allowedHeaders: ['Content-Type']
 }));
 
-app.use(express.json());
-
-// ✅ Allow preflight requests
+// ✅ Ensure preflight requests are handled
 app.options('*', cors());
+
+// Parse JSON request body
+app.use(express.json());
 
 app.post('/ai', async (req, res) => {
   try {
@@ -36,7 +37,8 @@ app.post('/ai', async (req, res) => {
     const data = await response.json();
     res.json(data);
   } catch (err) {
-    res.status(500).json({ error: 'Something went wrong' });
+    console.error('AI request failed:', err);
+    res.status(500).json({ error: 'AI request failed' });
   }
 });
 
