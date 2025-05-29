@@ -7,23 +7,17 @@ const port = process.env.PORT || 10000;
 
 app.use(express.json());
 
-// ✅ Allow requests only from your GitHub Pages site
+// ✅ Configure CORS properly
 const allowedOrigin = 'https://norshaab.github.io';
+const corsOptions = {
+  origin: allowedOrigin,
+  methods: ['POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type']
+};
 
-// ✅ Handle preflight CORS requests for /ai
-app.options('/ai', (req, res) => {
-  res.set({
-    'Access-Control-Allow-Origin': allowedOrigin,
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  });
-  res.sendStatus(200);
-});
-
-// ✅ Main AI route
-app.post('/ai', async (req, res) => {
-  res.set('Access-Control-Allow-Origin', allowedOrigin);
-
+// Apply CORS to the /ai endpoint
+app.options('/ai', cors(corsOptions)); // Handle preflight
+app.post('/ai', cors(corsOptions), async (req, res) => {
   try {
     const userPrompt = req.body.prompt || 'Hello';
     
