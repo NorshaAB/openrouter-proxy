@@ -1,47 +1,53 @@
 import express from 'express';
 import fetch from 'node-fetch';
+import cors from 'cors';
 
 const app = express();
-const PORT = process.env.PORT || 10000;
+const port = process.env.PORT || 10000;
 
-// ✅ Set CORS headers before any body parsing or routing
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', 'https://norshaab.github.io');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
-
-// ✅ Now safely parse JSON
 app.use(express.json());
 
-app.post('/ai', async (req, res) => {
-  try {
-    const { prompt } = req.body;
+// ✅ Allow requests only from your GitHub Pages site
+const allowedOrigin = 'https://norshaab.github.io';
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+// ✅ Handle preflight CORS requests for /ai
+app.options('/ai', (req, res) => {
+  res.set({
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  });
+  res.sendStatus(200);
+});
+
+// ✅ Main AI route
+app.post('/ai', async (req, res) => {
+  res.set('Access-Control-Allow-Origin', allowedOrigin);
+
+  try {
+    const userPrompt = req.body.prompt || 'Hello';
+    
+    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`
       },
       body: JSON.stringify({
-        model: 'gpt-4',
-        messages: [{ role: 'user', content: prompt }]
+        model: 'gpt-3.5-turbo',
+        messages: [{ role: 'user', content: userPrompt }]
       })
     });
 
-    const data = await response.json();
+    const data = await openaiResponse.json();
     res.json(data);
   } catch (err) {
-    console.error('AI request failed:', err);
-    res.status(500).json({ error: 'AI request failed' });
+    console.error('Error:', err);
+    res.status(500).json({ error: 'Failed to fetch from OpenAI API' });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Proxy running on port ${PORT}`);
+// ✅ Start server
+app.listen(port, () => {
+  console.log(`Proxy running on port ${port}`);
 });
