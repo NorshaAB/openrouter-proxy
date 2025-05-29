@@ -22,9 +22,9 @@ app.options('/ai', cors(corsOptions));
 app.post('/ai', cors(corsOptions), async (req, res) => {
   try {
     // Verify API key exists
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
-      throw new Error("OpenAI API key is missing from server configuration");
+      throw new Error("OpenRouter API key is missing from server configuration");
     }
 
     // Get user prompt or use default
@@ -33,34 +33,33 @@ app.post('/ai', cors(corsOptions), async (req, res) => {
       throw new Error("Prompt must be a string");
     }
 
-    // Call OpenAI API
-    const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Call OpenRouter API
+    const openrouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+        'Authorization': `Bearer ${apiKey}`,
+        'HTTP-Referer': allowedOrigin, // Required by OpenRouter
+        'X-Title': 'SQL AI Ebook' // Optional but recommended
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [{ role: 'user', content: userPrompt }],
-        temperature: 0.7
+        model: 'openai/gpt-3.5-turbo', // Specify model via OpenRouter
+        messages: [{ role: 'user', content: userPrompt }]
       }),
-      timeout: 10000 // 10 seconds timeout
+      timeout: 15000 // 15 seconds timeout
     });
 
-    // Handle OpenAI response
-    if (!openaiResponse.ok) {
-      const errorData = await openaiResponse.json();
-      throw new Error(`OpenAI API error: ${errorData.error?.message || openaiResponse.statusText}`);
+    // Handle OpenRouter response
+    if (!openrouterResponse.ok) {
+      const errorData = await openrouterResponse.json();
+      throw new Error(`OpenRouter API error: ${errorData.error?.message || openrouterResponse.statusText}`);
     }
 
-    const data = await openaiResponse.json();
+    const data = await openrouterResponse.json();
     res.json(data);
 
   } catch (err) {
     console.error('Error:', err.message);
-    
-    // Send appropriate error response
     res.status(500).json({ 
       error: 'AI request failed',
       details: err.message,
@@ -73,7 +72,8 @@ app.post('/ai', cors(corsOptions), async (req, res) => {
 app.get('/health', (req, res) => {
   res.status(200).json({ 
     status: 'healthy',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    service: 'OpenRouter Proxy'
   });
 });
 
@@ -81,5 +81,5 @@ app.get('/health', (req, res) => {
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
   console.log(`Allowed origin: ${allowedOrigin}`);
-  console.log(`OpenAI key present: ${!!process.env.OPENAI_API_KEY}`);
+  console.log(`OpenRouter key present: ${!!process.env.OPENROUTER_API_KEY}`);
 });
