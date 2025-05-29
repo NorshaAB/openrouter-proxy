@@ -37,11 +37,11 @@ app.post('/ai', cors(corsOptions), async (req, res) => {
    const openrouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
   method: 'POST',
   headers: {
-    'Authorization': `Bearer ${apiKey}`,
-    'HTTP-Referer': 'https://norshaab.github.io', // MUST match your allowedOrigin
-    'X-Title': 'SQL AI Ebook', // Your app name
-    'Content-Type': 'application/json'
-  },
+  'Authorization': `Bearer ${apiKey}`,
+  'HTTP-Referer': 'https://norshaab.github.io', // ← Must match exactly
+  'X-Title': 'SQL AI Ebook', // ← Any name you want
+  'Content-Type': 'application/json'
+},
       body: JSON.stringify({
         model: 'openai/gpt-3.5-turbo', // Specify model via OpenRouter
         messages: [{ role: 'user', content: userPrompt }]
