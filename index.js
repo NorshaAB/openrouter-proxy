@@ -34,20 +34,25 @@ app.post('/ai', cors(corsOptions), async (req, res) => {
     }
 
     // Call OpenRouter API
-   const openrouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+   // In your index.js
+const openrouterResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
   method: 'POST',
   headers: {
-  'Authorization': `Bearer ${apiKey}`,
-  'HTTP-Referer': 'https://norshaab.github.io', // ← Must match exactly
-  'X-Title': 'SQL AI Ebook', // ← Any name you want
-  'Content-Type': 'application/json'
-},
-      body: JSON.stringify({
-        model: 'openai/gpt-3.5-turbo', // Specify model via OpenRouter
-        messages: [{ role: 'user', content: userPrompt }]
-      }),
-      timeout: 15000 // 15 seconds timeout
-    });
+    'Authorization': `Bearer ${apiKey}`,
+    'HTTP-Referer': 'https://norshaab.github.io',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    model: 'openai/gpt-3.5-turbo',
+    messages: [{
+      role: 'system',
+      content: 'You are an SQL expert. Analyze the provided SQL schema for correctness, suggest improvements, and identify errors.'
+    }, {
+      role: 'user',
+      content: userPrompt // This should contain the SQL schema
+    }]
+  })
+});
 
     // Handle OpenRouter response
     if (!openrouterResponse.ok) {
