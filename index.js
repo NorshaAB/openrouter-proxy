@@ -26,9 +26,10 @@ app.post('/ai', cors(corsOptions), async (req, res) => {
       throw new Error("OpenRouter API key is missing");
     }
 
-    const userPrompt = req.body.prompt;
-    if (!userPrompt || typeof userPrompt !== 'string') {
-      throw new Error("Invalid prompt format");
+    // The frontend is sending the entire messages array, not just prompt
+    const { model, messages } = req.body;
+    if (!messages || !Array.isArray(messages)) {
+      throw new Error("Invalid messages format");
     }
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -36,25 +37,23 @@ app.post('/ai', cors(corsOptions), async (req, res) => {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'HTTP-Referer': 'https://norshaab.github.io',
+        'X-Title': 'SQL Checker',
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'openai/gpt-3.5-turbo',
+        model: model || 'openai/gpt-3.5-turbo',
         messages: [
           {
             role: 'system',
-            content: 'You are an SQL expert. Analyze the provided SQL schema for correctness, suggest improvements, and identify errors.'
+            content: 'You are an SQL expert. Analyze the provided SQL schema for correctness, suggest improvements, and identify errors. Respond with bullet points using emojis (✅, ⚠️, ❌, 💡) and end with "Grade: [A-F]".'
           },
-          {
-            role: 'user',
-            content: userPrompt
-          }
+          ...messages
         ]
       })
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({}));
       throw new Error(`OpenRouter API error: ${errorData.error?.message || response.statusText}`);
     }
 
@@ -71,7 +70,7 @@ app.post('/ai', cors(corsOptions), async (req, res) => {
 });
 
 // Health check
-app.get('/health', (req, res) => {
+app.get('/health', cors(), (req, res) => {
   res.status(200).json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
