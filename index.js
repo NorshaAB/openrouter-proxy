@@ -40,7 +40,7 @@ app.post('/ai', cors(corsOptions), async (req, res) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'openai/gpt-3.5-turbo',
+        model: 'mistralai/mixtral-8x7b-instruct',
         messages: [
           {
             role: 'system',
